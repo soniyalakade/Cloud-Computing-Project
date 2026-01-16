@@ -1,0 +1,65 @@
+<nav class="navbar navbar-expand-lg navbar-dark shadow fixed-top">
+  <div class="container">
+
+    <!-- Logo -->
+    <a class="navbar-brand fw-bold d-flex align-items-center" href="index.html">
+      <img src="images/logo.png" alt="Logo" height="40" class="me-2 rounded-pill">
+      FashionStore
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto align-items-lg-center">
+
+        <li class="nav-item">
+          <a class="nav-link" href="index.html">Home</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="#products">Products</a>
+        </li>
+
+        <!-- Categories -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            Categories
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="category.html?type=men">Men</a></li>
+            <li><a class="dropdown-item" href="category.html?type=women">Women</a></li>
+            <li><a class="dropdown-item" href="category.html?type=footwear">Footwear</a></li>
+            <li><a class="dropdown-item" href="category.html?type=accessories">Accessories</a></li>
+          </ul>
+        </li>
+
+        <!-- Cart -->
+        <li class="nav-item ms-lg-3">
+          <a class="nav-link" href="cart.html">
+            Cart
+            <span id="cart-count" class="badge bg-warning text-dark ms-1">0</span>
+          </a>
+        </li>
+
+        <!-- Login -->
+        <li class="nav-item ms-lg-3" id="loginBtn">
+          <a href="/auth/login.html" class="dropdown-item">Login</a>
+        </li>
+
+        <!-- Sign Up -->
+        <li class="nav-item ms-2" id="signupBtn">
+          <a href="/auth/register.html" class="dropdown-item">Sign Up</a>
+        </li>
+
+        <!-- Logout -->
+        <button class="btn btn-outline-light btn-sm" onclick="logoutUser()">
+            Logout
+        </button>
+
+
+      </ul>
+    </div>
+  </div>
+</nav>

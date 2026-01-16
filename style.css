@@ -1,0 +1,204 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+/* ================= GLOBAL ================= */
+:root {
+  --primary: #7b4019;
+  --secondary: #FF7D29;
+  --dark: #1f1f1f;
+  --light: #f9f9f9;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #fff0f3, #f8f9fa);
+  padding-top: 80px; /* space for fixed navbar */
+  margin: 0;
+}
+
+/* ================= NAVBAR ================= */
+.navbar {
+  background: #7B4019;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  min-height: 80px;
+}
+
+.navbar-brand,
+.navbar-nav .nav-link {
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+.navbar-nav .nav-link:hover {
+  opacity: 0.85;
+}
+
+/* Navbar toggler icon */
+.navbar-toggler {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(255,255,255,0.95)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+}
+.navbar-brand img {
+  height: 50px;           /* Adjust height */
+  width: 120px;           /* Adjust width to make oval */
+  object-fit: cover;      /* Keep image from stretching */
+  border-radius: 50% / 50%; /* Makes it an oval */
+  background-color: #fff; /* Optional: white background behind logo */
+  padding: 5px;           /* Optional: spacing around logo */
+}
+
+/* Dropdown menu styling */
+.dropdown-menu {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.dropdown-item:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ================= HERO ================= */
+.hero {
+  height: 60vh;
+  background:
+    linear-gradient(120deg, rgba(127,0,255,0.6), rgba(255,77,109,0.6)),
+    url("https://source.unsplash.com/1600x800/?fashion,model");
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+}
+
+.hero h1 {
+  animation: slideDown 1s ease;
+  text-shadow: 3px 3px 12px rgba(0,0,0,0.8);
+}
+
+.hero p {
+  animation: fadeIn 1.8s ease;
+}
+
+/* Animations */
+@keyframes slideDown {
+  from { transform: translateY(-40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ================= BUTTONS ================= */
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  border: none;
+  padding: 12px 28px;
+  border-radius: 30px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 25px rgba(153, 57, 31, 0.4);
+}
+
+/* ================= PRODUCTS ================= */
+#products {
+  background: #fff;
+  padding: 70px 30px;
+  border-radius: 25px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+}
+
+/* Product Cards */
+.card {
+  border: none;
+  border-radius: 20px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #ffffff, #fff0f3);
+  transition: all 0.4s ease;
+  position: relative;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+/* Product Image Wrapper */
+.product-img-box {
+  width: 100%;
+  height: 280px;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-bottom: 1px solid #eee;
+}
+
+.product-img-box img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.card:hover .product-img-box img {
+  transform: scale(1.05);
+}
+
+/* Card Content */
+.card-title {
+  color: var(--dark);
+  font-weight: 600;
+}
+
+.card-text {
+  color: #555;
+}
+
+#category-products .card-img-top {
+  width: 100%;
+  height: 220px;         
+  object-fit: contain; 
+  background-color: #f8f9fa;
+  padding: 10px;
+}
+
+/* ================= FOOTER ================= */
+footer {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 500;
+  padding: 20px 0;
+  text-align: center;
+}
+
+/* ================= MEDIA QUERIES ================= */
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 2rem;
+  }
+  .hero p {
+    font-size: 1rem;
+  }
+}
+/* CART IMAGES FIX */
+.cart-img, .card img {
+  width: 100%;
+  height: 200px;
+  object-fit: contain;   /* IMPORTANT */
+  background-color: #f8f8f8;
+  padding: 10px;
+}
