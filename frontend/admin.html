@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Panel | Fashion Store</title>
+  <link rel="stylesheet" href="admin.css" />
+</head>
+
+<body>
+
+<h2>Fashion Store Admin Panel</h2>
+
+<!-- ================= ADD PRODUCT FORM ================= -->
+<form id="productForm" enctype="multipart/form-data">
+
+  <input type="text" id="name" placeholder="Product Name" required />
+
+  <input type="number" id="cost" placeholder="Cost" required />
+
+  <select id="category" required>
+    <option value="men">Men</option>
+    <option value="women">Women</option>
+    <option value="footwear">Footwear</option>
+    <option value="accessories">Accessories</option>
+  </select>
+
+  <input type="file" id="image" required />
+
+  <button type="submit">Add Product</button>
+
+</form>
+
+<hr>
+
+<h2>All Products</h2>
+<div id="productList"></div>
+
+<script>
+const API = "http://localhost:5000/api";
+
+
+// ================= LOAD PRODUCTS =================
+async function loadProducts() {
+  const res = await fetch(`${API}/admin/products`);
+  const products = await res.json();
+
+  const container = document.getElementById("productList");
+  container.innerHTML = "";
+
+  products.forEach(product => {
+
+    console.log("PRODUCT:", product); // DEBUG
+
+    container.innerHTML += `
+      <div class="card">
+        <img src="${product.imageUrl}" width="120" />
+
+        <h3>${product.name}</h3>
+        <p>₹${product.cost}</p>
+        <p>${product.category}</p>
+
+        <button onclick="deleteProduct('${product.id}')">
+          Delete
+        </button>
+      </div>
+    `;
+  });
+}
+
+
+// ================= DELETE PRODUCT =================
+async function deleteProduct(id) {
+
+  console.log("Deleting ID:", id);
+
+  if (!id) {
+    alert("Invalid product id");
+    return;
+  }
+
+  const res = await fetch(`${API}/product/${id}`, {
+    method: "DELETE"
+  });
+
+  const data = await res.json();
+  alert(data.message);
+
+  loadProducts();
+}
+
+
+// ================= ADD PRODUCT =================
+document.getElementById("productForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const formData = new FormData();
+  formData.append("name", document.getElementById("name").value);
+  formData.append("cost", document.getElementById("cost").value);
+  formData.append("category", document.getElementById("category").value);
+  formData.append("image", document.getElementById("image").files[0]);
+
+  const res = await fetch(`${API}/add-product`, {
+    method: "POST",
+    body: formData
+  });
+
+  const data = await res.json();
+  alert(data.message);
+
+  loadProducts();
+});
+
+
+// ================= INITIAL LOAD =================
+loadProducts();
+
+</script>
+
+</body>
+</html>

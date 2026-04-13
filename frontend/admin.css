@@ -1,0 +1,133 @@
+/* =========================
+   GLOBAL THEME
+========================= */
+body {
+  font-family: "Arial", sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #fff5f7, #f8f9fa);
+}
+
+/* =========================
+   TITLE
+========================= */
+h2 {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 30px;
+  color: #222;
+  letter-spacing: 1px;
+}
+
+/* =========================
+   FORM CARD
+========================= */
+form {
+  width: 420px;
+  margin: 40px auto;
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  border-top: 5px solid #7b4019;
+  transition: 0.3s ease;
+}
+
+/* hover effect */
+form:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+}
+
+/* =========================
+   INPUT FIELDS
+========================= */
+input[type="text"],
+input[type="number"],
+input[type="file"],
+select {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  transition: 0.3s;
+}
+
+/* focus effect */
+input:focus,
+select:focus {
+  border-color: #7b4019;
+  box-shadow: 0 0 8px rgba(123, 64, 25, 0.3);
+}
+
+/* =========================
+   BUTTON (FASHION STYLE)
+========================= */
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  background: linear-gradient(135deg, #7b4019, #a86f3d);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: bold;
+  letter-spacing: 1px;
+  transition: 0.3s;
+}
+
+/* hover */
+button:hover {
+  background: linear-gradient(135deg, #7b4019, #7b4019);
+  transform: scale(1.02);
+}
+
+/* =========================
+   RESPONSIVE DESIGN
+========================= */
+@media (max-width: 500px) {
+  form {
+    width: 90%;
+    padding: 20px;
+  }
+}
+
+
+#productList {
+  width: 90%;
+  margin: 20px auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.card img {
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.card button {
+  background: #ff4d6d;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.card button:hover {
+  background: #e6003a;
+}

@@ -1,0 +1,96 @@
+const params = new URLSearchParams(window.location.search);
+const categoryType = (params.get("type") || "all").toLowerCase();
+
+document.getElementById("category-title").innerText =
+  categoryType + " Collection";
+
+const container = document.getElementById("category-products");
+
+// ================= LOAD PRODUCTS =================
+async function loadProducts() {
+  try {
+
+    let url = "http://localhost:5000/api/admin/products";
+
+    if (categoryType !== "all") {
+      url = `http://localhost:5000/api/category/${categoryType}`;
+    }
+
+    const res = await fetch(url);
+    const products = await res.json();
+
+    container.innerHTML = "";
+
+    if (!Array.isArray(products) || products.length === 0) {
+      container.innerHTML = "<p class='text-center'>No products found</p>";
+      return;
+    }
+
+    products.forEach(product => {
+
+      const col = document.createElement("div");
+      col.className = "col-md-4 mb-4";
+
+      col.innerHTML = `
+        <div class="card h-100 shadow">
+          <img src="${product.imageUrl}" class="card-img-top">
+          <div class="card-body d-flex flex-column">
+            <h5>${product.name}</h5>
+            <p>₹${product.cost}</p>
+
+            <button class="btn btn-primary mt-auto w-100 add-cart-btn">
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      `;
+
+      container.appendChild(col);
+
+      col.querySelector(".add-cart-btn")
+        .addEventListener("click", () => addToCart(product));
+    });
+
+  } catch (error) {
+    console.error("Error loading products:", error);
+  }
+}
+
+// ================= ADD TO CART =================
+async function addToCart(product) {
+  const userId = localStorage.getItem("userId");
+
+  if (!userId) {
+    alert("Login first");
+    window.location.href = "./auth/login.html";
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:5000/api/cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,
+        productId: product._id || product.id,   // 🔥 FIX HERE
+        name: product.name,
+        price: product.cost,
+        image: product.imageUrl
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message);
+
+    alert("Added to cart");
+
+    window.dispatchEvent(new Event("cartUpdated"));
+
+  } catch (err) {
+    console.error("Cart error:", err);
+    alert(err.message || "Failed to add to cart");
+  }
+}
+
+loadProducts();

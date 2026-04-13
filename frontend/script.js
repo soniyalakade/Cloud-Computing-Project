@@ -31,16 +31,11 @@ const products = [
     img: "https://lh6.googleusercontent.com/proxy/8vUzR8OZURj5Fs4VjSPz8M0fkDnXkdQzWYh98OZCWjJhtqx4jIHdvV2Ekt5taphxf533FNpUxNlu70SRKtchwIgEY7qz1yKDr8M1UoaIqC6gwWucBdqsatH3wwTq4xTRnpygifq1_Q"
   }
 ];
-
-/*******************************
- * DOM ELEMENTS
- *******************************/
 const productList = document.getElementById("product-list");
 
-
-/*******************************
- * RENDER PRODUCTS
- *******************************/
+/* ===============================
+   RENDER PRODUCTS
+================================ */
 function renderProducts() {
   if (!productList) return;
 
@@ -53,14 +48,12 @@ function renderProducts() {
     col.innerHTML = `
       <div class="card h-100 shadow-sm">
         <div class="product-img-box">
-          <img src="${product.img}" alt="${product.name}">
+          <img src="${product.img}" alt="${product.name}" class="img-fluid">
         </div>
         <div class="card-body d-flex flex-column">
-          <h5 class="card-title">${product.name}</h5>
-          <p class="card-text">₹${product.price}</p>
-          <button 
-            class="btn btn-primary mt-auto add-to-cart"
-            data-id="${product.id}">
+          <h5>${product.name}</h5>
+          <p>₹${product.price}</p>
+          <button class="btn btn-primary mt-auto add-to-cart" data-id="${product.id}">
             Add to Cart
           </button>
         </div>
@@ -74,99 +67,99 @@ function renderProducts() {
 }
 
 
-/*******************************
- * ADD TO CART (USER BASED)
- *******************************/
-function addToCart(product) {
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+/* ===============================
+   ADD TO CART
+================================ */
+async function addToCart(product) {
   const userId = localStorage.getItem("userId");
 
-  if (!isLoggedIn || !userId) {
-    alert("Please login to add items to cart");
-    window.location.href = "/auth/login.html";
+  if (!userId) {
+    alert("Please login first");
+    window.location.href = "./auth/login.html";
     return;
   }
 
-  let cart = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
-
-  const existingItem = cart.find(item => item.id === product.id);
-
-  if (existingItem) {
-    existingItem.quantity += 1;
-  } else {
-    cart.push({
-      ...product,
-      quantity: 1
+  try {
+    const response = await fetch("http://localhost:5000/api/cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.img,
+        quantity: 1
+      })
     });
+
+    if (!response.ok) throw new Error("Failed to add to cart");
+
+    const data = await response.json();
+    console.log("Cart item added:", data);
+    alert("Item added to cart");
+
+    updateCartCount(); // update cart count on UI
+  } catch (err) {
+    console.error("Error adding item to cart:", err);
   }
-
-  localStorage.setItem(`cart_${userId}`, JSON.stringify(cart));
-
-  window.dispatchEvent(new Event("cartUpdated"));
-
-  if (window.updateNavbarCartCount) {
-    window.updateNavbarCartCount();
-  }
-
-if (typeof updateNavbarCartCount === "function") {
-  updateNavbarCartCount();
-}
-  alert("Item added to cart");
 }
 
-
-/*******************************
- * ADD BUTTON EVENT LISTENERS
- *******************************/
+/* ===============================
+   BUTTON EVENTS
+================================ */
 function attachAddToCartEvents() {
   document.querySelectorAll(".add-to-cart").forEach(btn => {
     btn.addEventListener("click", () => {
-      const productId = Number(btn.dataset.id);
-      const product = products.find(p => p.id === productId);
+      const id = Number(btn.dataset.id);
+      const product = products.find(p => p.id === id);
       if (product) addToCart(product);
     });
   });
 }
 
-
-/*******************************
- * UPDATE CART COUNT (NAVBAR)
- *******************************/
-function updateCartCount() {
-  const cartCountEl = document.getElementById("cart-count");
+/* ===============================
+   CART COUNT
+================================ */
+async function updateCartCount() {
+  const cartCount = document.getElementById("cart-count");
   const userId = localStorage.getItem("userId");
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
 
-  if (!cartCountEl || !isLoggedIn || !userId) {
-    if (cartCountEl) cartCountEl.innerText = "0";
+  if (!cartCount || !userId) {
+    if (cartCount) cartCount.innerText = "0";
     return;
   }
 
-  const cart = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
-  cartCountEl.innerText = cart.length;
+  try {
+    const res = await fetch(`http://localhost:5000/api/cart/${userId}`);
+    if (!res.ok) throw new Error("Failed to fetch cart");
+
+    const cart = await res.json();
+    cartCount.innerText = cart.reduce((sum, item) => sum + item.quantity, 0);
+  } catch (err) {
+    console.error(err);
+    if (cartCount) cartCount.innerText = "0";
+  }
 }
 
-
-/*******************************
- * HERO SLIDER
- *******************************/
+/* ===============================
+   HERO SLIDER
+================================ */
 const slides = document.querySelectorAll(".hero-slide");
-let currentSlide = 0;
+let current = 0;
 
 function changeSlide() {
   if (slides.length === 0) return;
 
-  slides[currentSlide].classList.remove("active");
-  currentSlide = (currentSlide + 1) % slides.length;
-  slides[currentSlide].classList.add("active");
+  slides[current].classList.remove("active");
+  current = (current + 1) % slides.length;
+  slides[current].classList.add("active");
 }
 
 setInterval(changeSlide, 4000);
 
-
-/*******************************
- * INIT
- *******************************/
+/* ===============================
+   INIT
+================================ */
 renderProducts();
 updateCartCount();
-
