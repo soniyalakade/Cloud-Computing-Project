@@ -1,3 +1,5 @@
+const API_BASE = "http://fashion-store-alb-769926527.eu-west-3.elb.amazonaws.com";
+
 const params = new URLSearchParams(window.location.search);
 const categoryType = (params.get("type") || "all").toLowerCase();
 
@@ -6,14 +8,13 @@ document.getElementById("category-title").innerText =
 
 const container = document.getElementById("category-products");
 
-// ================= LOAD PRODUCTS =================
 async function loadProducts() {
   try {
 
-    let url = "http://localhost:5000/api/admin/products";
+    let url = `${API_BASE}/api/admin/products`;
 
     if (categoryType !== "all") {
-      url = `http://localhost:5000/api/category/${categoryType}`;
+      url = `${API_BASE}/api/category/${categoryType}`;
     }
 
     const res = await fetch(url);
@@ -21,13 +22,7 @@ async function loadProducts() {
 
     container.innerHTML = "";
 
-    if (!Array.isArray(products) || products.length === 0) {
-      container.innerHTML = "<p class='text-center'>No products found</p>";
-      return;
-    }
-
     products.forEach(product => {
-
       const col = document.createElement("div");
       col.className = "col-md-4 mb-4";
 
@@ -37,7 +32,6 @@ async function loadProducts() {
           <div class="card-body d-flex flex-column">
             <h5>${product.name}</h5>
             <p>₹${product.cost}</p>
-
             <button class="btn btn-primary mt-auto w-100 add-cart-btn">
               Add to Cart
             </button>
@@ -47,50 +41,35 @@ async function loadProducts() {
 
       container.appendChild(col);
 
-      col.querySelector(".add-cart-btn")
-        .addEventListener("click", () => addToCart(product));
+      col.querySelector(".add-cart-btn").addEventListener("click", () => addToCart(product));
     });
 
   } catch (error) {
-    console.error("Error loading products:", error);
+    console.error(error);
   }
 }
 
-// ================= ADD TO CART =================
 async function addToCart(product) {
   const userId = localStorage.getItem("userId");
 
   if (!userId) {
     alert("Login first");
-    window.location.href = "./auth/login.html";
     return;
   }
 
-  try {
-    const res = await fetch("http://localhost:5000/api/cart", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId,
-        productId: product._id || product.id,   // 🔥 FIX HERE
-        name: product.name,
-        price: product.cost,
-        image: product.imageUrl
-      })
-    });
+  await fetch(`${API_BASE}/api/cart`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId,
+      productId: product._id,
+      name: product.name,
+      price: product.cost,
+      image: product.imageUrl
+    })
+  });
 
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.message);
-
-    alert("Added to cart");
-
-    window.dispatchEvent(new Event("cartUpdated"));
-
-  } catch (err) {
-    console.error("Cart error:", err);
-    alert(err.message || "Failed to add to cart");
-  }
+  alert("Added to cart");
 }
 
 loadProducts();

@@ -1,3 +1,5 @@
+const API_BASE = "http://fashion-store-alb-769926527.eu-west-3.elb.amazonaws.com";
+
 document.getElementById("productForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -7,7 +9,7 @@ document.getElementById("productForm").addEventListener("submit", async (e) => {
   formData.append("category", document.getElementById("category").value);
   formData.append("image", document.getElementById("image").files[0]);
 
-  const res = await fetch("http://localhost:5000/api/add-product", {
+  const res = await fetch(`${API_BASE}/api/add-product`, {
     method: "POST",
     body: formData
   });

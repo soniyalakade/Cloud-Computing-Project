@@ -1,5 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+  const API_BASE = "http://fashion-store-alb-769926527.eu-west-3.elb.amazonaws.com";
+
   const userId = localStorage.getItem("userId");
 
   if (!userId) {
@@ -12,10 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const totalPriceEl = document.getElementById("total-price");
   const checkoutBtn = document.getElementById("checkout-btn");
 
-  // ================= LOAD CART =================
   async function loadCart() {
     try {
-      const res = await fetch(`http://localhost:5000/api/cart/${userId}`);
+      const res = await fetch(`${API_BASE}/api/cart/${userId}`);
       const cart = await res.json();
 
       cartItems.innerHTML = "";
@@ -53,17 +54,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ================= REMOVE ITEM =================
   function attachRemove() {
     document.querySelectorAll(".remove-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
 
         const productId = btn.dataset.id;
 
-        await fetch(
-          `http://localhost:5000/api/cart/${userId}/${productId}`,
-          { method: "DELETE" }
-        );
+        await fetch(`${API_BASE}/api/cart/${userId}/${productId}`, {
+          method: "DELETE"
+        });
 
         loadCart();
         window.dispatchEvent(new Event("cartUpdated"));
@@ -71,38 +70,23 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ================= CHECKOUT =================
   checkoutBtn.addEventListener("click", async () => {
+    const res = await fetch(`${API_BASE}/api/cart/${userId}`);
+    const cart = await res.json();
 
-    try {
-      const res = await fetch(`http://localhost:5000/api/cart/${userId}`);
-      const cart = await res.json();
+    if (!cart.length) return alert("Cart empty");
 
-      if (!Array.isArray(cart) || cart.length === 0) {
-        alert("Cart is empty");
-        return;
-      }
+    const clearRes = await fetch(`${API_BASE}/api/cart/${userId}/clear`, {
+      method: "DELETE"
+    });
 
-      const clearRes = await fetch(
-        `http://localhost:5000/api/cart/${userId}/clear`,
-        { method: "DELETE" }
-      );
+    const data = await clearRes.json();
 
-      const data = await clearRes.json();
+    alert(`Order placed! ${data.deleted} items removed`);
 
-      alert(`Order placed! ${data.deleted} items removed`);
-
-      await loadCart();
-
-      window.dispatchEvent(new Event("cartUpdated"));
-
-    } catch (err) {
-      console.error(err);
-      alert("Checkout failed");
-    }
+    loadCart();
+    window.dispatchEvent(new Event("cartUpdated"));
   });
 
-  // INITIAL LOAD (ONLY ONCE)
   loadCart();
-
 });

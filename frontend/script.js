@@ -31,6 +31,8 @@ const products = [
     img: "https://lh6.googleusercontent.com/proxy/8vUzR8OZURj5Fs4VjSPz8M0fkDnXkdQzWYh98OZCWjJhtqx4jIHdvV2Ekt5taphxf533FNpUxNlu70SRKtchwIgEY7qz1yKDr8M1UoaIqC6gwWucBdqsatH3wwTq4xTRnpygifq1_Q"
   }
 ];
+const API_BASE = "http://fashion-store-alb-769926527.eu-west-3.elb.amazonaws.com";
+
 const productList = document.getElementById("product-list");
 
 /* ===============================
@@ -53,9 +55,6 @@ function renderProducts() {
         <div class="card-body d-flex flex-column">
           <h5>${product.name}</h5>
           <p>₹${product.price}</p>
-          <button class="btn btn-primary mt-auto add-to-cart" data-id="${product.id}">
-            Add to Cart
-          </button>
         </div>
       </div>
     `;
@@ -65,7 +64,6 @@ function renderProducts() {
 
   attachAddToCartEvents();
 }
-
 
 /* ===============================
    ADD TO CART
@@ -80,7 +78,7 @@ async function addToCart(product) {
   }
 
   try {
-    const response = await fetch("http://localhost:5000/api/cart", {
+    const response = await fetch(`${API_BASE}/api/cart`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -93,15 +91,19 @@ async function addToCart(product) {
       })
     });
 
-    if (!response.ok) throw new Error("Failed to add to cart");
-
     const data = await response.json();
-    console.log("Cart item added:", data);
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to add to cart");
+    }
+
     alert("Item added to cart");
 
-    updateCartCount(); // update cart count on UI
+    updateCartCount();
+
   } catch (err) {
     console.error("Error adding item to cart:", err);
+    alert(err.message || "Failed to add to cart");
   }
 }
 
@@ -113,6 +115,7 @@ function attachAddToCartEvents() {
     btn.addEventListener("click", () => {
       const id = Number(btn.dataset.id);
       const product = products.find(p => p.id === id);
+
       if (product) addToCart(product);
     });
   });
@@ -131,14 +134,17 @@ async function updateCartCount() {
   }
 
   try {
-    const res = await fetch(`http://localhost:5000/api/cart/${userId}`);
+    const res = await fetch(`${API_BASE}/api/cart/${userId}`);
+
     if (!res.ok) throw new Error("Failed to fetch cart");
 
     const cart = await res.json();
+
     cartCount.innerText = cart.reduce((sum, item) => sum + item.quantity, 0);
+
   } catch (err) {
-    console.error(err);
-    if (cartCount) cartCount.innerText = "0";
+    console.error("Cart count error:", err);
+    cartCount.innerText = "0";
   }
 }
 
@@ -149,7 +155,7 @@ const slides = document.querySelectorAll(".hero-slide");
 let current = 0;
 
 function changeSlide() {
-  if (slides.length === 0) return;
+  if (!slides.length) return;
 
   slides[current].classList.remove("active");
   current = (current + 1) % slides.length;
