@@ -36,12 +36,12 @@
 <div id="productList"></div>
 
 <script>
-const API = "http://localhost:5000/api";
+  const API_BASE = "http://fashion-store-alb-769926527.eu-west-3.elb.amazonaws.com";
 
 
 // ================= LOAD PRODUCTS =================
 async function loadProducts() {
-  const res = await fetch(`${API}/admin/products`);
+  const res = await fetch(`${API_BASE}/admin/products`);
   const products = await res.json();
 
   const container = document.getElementById("productList");
@@ -78,7 +78,7 @@ async function deleteProduct(id) {
     return;
   }
 
-  const res = await fetch(`${API}/product/${id}`, {
+  const res = await fetch(`${API_BASE}/product/${id}`, {
     method: "DELETE"
   });
 
@@ -99,7 +99,7 @@ document.getElementById("productForm").addEventListener("submit", async (e) => {
   formData.append("category", document.getElementById("category").value);
   formData.append("image", document.getElementById("image").files[0]);
 
-  const res = await fetch(`${API}/add-product`, {
+  const res = await fetch(`${API_BASE}/add-product`, {
     method: "POST",
     body: formData
   });

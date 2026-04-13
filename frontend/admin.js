@@ -1,7 +1,8 @@
-const API_BASE = "http://fashion-store-alb-769926527.eu-west-3.elb.amazonaws.com";
 
 document.getElementById("productForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+
+  const API_BASE = "http://fashion-store-alb-769926527.eu-west-3.elb.amazonaws.com";
 
   const formData = new FormData();
   formData.append("name", document.getElementById("name").value);

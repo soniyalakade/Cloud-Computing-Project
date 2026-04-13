@@ -1,4 +1,3 @@
-const API_BASE = "http://fashion-store-alb-769926527.eu-west-3.elb.amazonaws.com";
 
 const params = new URLSearchParams(window.location.search);
 const categoryType = (params.get("type") || "all").toLowerCase();
@@ -7,6 +6,9 @@ document.getElementById("category-title").innerText =
   categoryType + " Collection";
 
 const container = document.getElementById("category-products");
+
+const API_BASE = "http://fashion-store-alb-769926527.eu-west-3.elb.amazonaws.com";
+
 
 async function loadProducts() {
   try {
