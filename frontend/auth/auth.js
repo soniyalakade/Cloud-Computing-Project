@@ -23,7 +23,7 @@ if (registerForm) {
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
 
-    const res = await fetch("http://localhost:5000/api/users/register", {
+    const res = await fetch("/api/users/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password })
@@ -34,8 +34,6 @@ if (registerForm) {
     if (res.ok) {
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("userName", data.user.name);
-
-      // ✅ IMPORTANT FIX
       localStorage.setItem("userId", data.user.email);
 
       alert("Registered successfully!");
@@ -56,7 +54,7 @@ if (loginForm) {
     const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value.trim();
 
-    const res = await fetch("http://localhost:5000/api/users/login", {
+    const res = await fetch("/api/users/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
@@ -67,8 +65,6 @@ if (loginForm) {
     if (res.ok && data.user) {
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("userName", data.user.name);
-
-      // ✅ FIX
       localStorage.setItem("userId", data.user.email);
 
       alert("Login successful!");
@@ -78,7 +74,6 @@ if (loginForm) {
     }
   });
 }
-
 
 /* ================= LOGOUT ================= */
 document.addEventListener("click", (e) => {

@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="container">
 
         <a class="navbar-brand fw-bold d-flex align-items-center" href="./index.html">
-          <img src="./images/logo.png" alt="Logo" height="40" class="me-2 rounded-pill">
+          <img src="/images/logo.png" alt="Logo" height="40" class="me-2 rounded-pill">
           FashionStore
         </a>
 
@@ -94,7 +94,7 @@ async function updateNavbarCartCount() {
   }
 
   try {
-    const res = await fetch(`http://localhost:5000/api/cart/${userId}`);
+    const res = await fetch(`/api/cart/${userId}`);
     const cart = await res.json();
 
     countEl.innerText = cart.length;
