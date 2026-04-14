@@ -4,11 +4,20 @@ const router = express.Router();
 const dynamo = require("../config/dynamo");
 const { GetCommand, PutCommand } = require("@aws-sdk/lib-dynamodb");
 
-// ================= REGISTER =================
+/* =========================
+   REGISTER USER
+========================= */
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        message: "Name, email and password are required"
+      });
+    }
+
+    // Check if user exists
     const existing = await dynamo.send(
       new GetCommand({
         TableName: "users",
@@ -17,10 +26,16 @@ router.post("/register", async (req, res) => {
     );
 
     if (existing.Item) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({
+        message: "User already exists"
+      });
     }
 
-    const user = { email, name, password };
+    const user = {
+      email,
+      name,
+      password // ⚠️ (for project only, not production)
+    };
 
     await dynamo.send(
       new PutCommand({
@@ -29,17 +44,32 @@ router.post("/register", async (req, res) => {
       })
     );
 
-    res.json({ message: "Registered", user });
+    res.json({
+      message: "Registered successfully",
+      user
+    });
 
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("REGISTER ERROR:", err);
+    res.status(500).json({
+      message: "Registration failed"
+    });
   }
 });
 
-// ================= LOGIN =================
+
+/* =========================
+   LOGIN USER
+========================= */
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password are required"
+      });
+    }
 
     const data = await dynamo.send(
       new GetCommand({
@@ -50,14 +80,28 @@ router.post("/login", async (req, res) => {
 
     const user = data.Item;
 
-    if (!user) return res.status(401).json({ message: "User not found" });
-    if (user.password !== password)
-      return res.status(401).json({ message: "Wrong password" });
+    if (!user) {
+      return res.status(401).json({
+        message: "User not found"
+      });
+    }
 
-    res.json({ message: "Login success", user });
+    if (user.password !== password) {
+      return res.status(401).json({
+        message: "Invalid password"
+      });
+    }
+
+    res.json({
+      message: "Login successful",
+      user
+    });
 
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("LOGIN ERROR:", err);
+    res.status(500).json({
+      message: "Login failed"
+    });
   }
 });
 

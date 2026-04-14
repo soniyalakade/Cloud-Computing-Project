@@ -7,14 +7,14 @@ const {
   QueryCommand,
   PutCommand,
   DeleteCommand,
-  UpdateCommand
+  UpdateCommand,
+  GetCommand
 } = require("@aws-sdk/lib-dynamodb");
 
 
-// ================= GET CART =================
+/* ================= GET CART ================= */
 router.get("/:userId", async (req, res) => {
   try {
-
     const data = await dynamo.send(
       new QueryCommand({
         TableName: "cart",
@@ -33,29 +33,27 @@ router.get("/:userId", async (req, res) => {
 });
 
 
-// ================= ADD TO CART =================
+/* ================= ADD TO CART (OPTIMIZED) ================= */
 router.post("/", async (req, res) => {
   try {
-
     const { userId, productId, name, price, image } = req.body;
 
     if (!userId || !productId) {
       return res.status(400).json({ message: "Invalid request" });
     }
 
-    const data = await dynamo.send(
-      new QueryCommand({
+    // 🔥 DIRECT CHECK (FAST)
+    const existing = await dynamo.send(
+      new GetCommand({
         TableName: "cart",
-        KeyConditionExpression: "userId = :uid",
-        ExpressionAttributeValues: {
-          ":uid": userId
+        Key: {
+          userId,
+          productId
         }
       })
     );
 
-    const existing = data.Items.find(i => i.productId === productId);
-
-    if (existing) {
+    if (existing.Item) {
       await dynamo.send(
         new UpdateCommand({
           TableName: "cart",
@@ -70,6 +68,7 @@ router.post("/", async (req, res) => {
       return res.json({ message: "Quantity updated" });
     }
 
+    // NEW ITEM
     await dynamo.send(
       new PutCommand({
         TableName: "cart",
@@ -92,26 +91,41 @@ router.post("/", async (req, res) => {
 });
 
 
-// ================= CLEAR CART (MUST BE FIRST) =================
+/* ================= REMOVE ITEM ================= */
+router.delete("/:userId/:productId", async (req, res) => {
+  try {
+    await dynamo.send(
+      new DeleteCommand({
+        TableName: "cart",
+        Key: {
+          userId: req.params.userId,
+          productId: req.params.productId
+        }
+      })
+    );
+
+    res.json({ message: "Item removed" });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+/* ================= CLEAR CART ================= */
 router.delete("/:userId/clear", async (req, res) => {
   try {
-    const userId = req.params.userId;
-
     const data = await dynamo.send(
       new QueryCommand({
         TableName: "cart",
         KeyConditionExpression: "userId = :uid",
         ExpressionAttributeValues: {
-          ":uid": userId
+          ":uid": req.params.userId
         }
       })
     );
 
     const items = data.Items || [];
-
-    if (items.length === 0) {
-      return res.json({ message: "Cart already empty", deleted: 0 });
-    }
 
     await Promise.all(
       items.map(item =>
@@ -127,32 +141,10 @@ router.delete("/:userId/clear", async (req, res) => {
       )
     );
 
-    return res.json({
-      message: "Cart cleared successfully",
+    res.json({
+      message: "Cart cleared",
       deleted: items.length
     });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: err.message });
-  }
-});
-
-
-// ================= REMOVE ITEM =================
-router.delete("/:userId/:productId", async (req, res) => {
-  try {
-    await dynamo.send(
-      new DeleteCommand({
-        TableName: "cart",
-        Key: {
-          userId: req.params.userId,
-          productId: req.params.productId
-        }
-      })
-    );
-
-    res.json({ message: "Item removed" });
 
   } catch (err) {
     res.status(500).json({ message: err.message });

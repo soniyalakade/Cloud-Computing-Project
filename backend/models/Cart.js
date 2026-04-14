@@ -1,15 +1,12 @@
-const mongoose = require("mongoose");
+// DynamoDB Cart Structure (NOT Mongoose)
 
-const cartSchema = new mongoose.Schema({
-  userId: String,
-  productId: String,
-  name: String,
-  price: Number,
-  image: String,
-  quantity: {
-    type: Number,
-    default: 1
-  }
-});
+const CartModel = {
+  userId: "",      // partition key
+  productId: "",   // sort key (recommended)
+  name: "",
+  price: 0,
+  image: "",
+  quantity: 1
+};
 
-module.exports = mongoose.model("Cart", cartSchema);
+module.exports = CartModel;

@@ -39,8 +39,6 @@ const productList = document.getElementById("product-list");
    RENDER PRODUCTS
 ================================ */
 function renderProducts() {
-  if (!productList) return;
-
   productList.innerHTML = "";
 
   products.forEach(product => {
@@ -49,12 +47,15 @@ function renderProducts() {
 
     col.innerHTML = `
       <div class="card h-100 shadow-sm">
-        <div class="product-img-box">
-          <img src="${product.img}" alt="${product.name}" class="img-fluid">
-        </div>
+        <img src="${product.img}" class="card-img-top" />
         <div class="card-body d-flex flex-column">
           <h5>${product.name}</h5>
           <p>₹${product.price}</p>
+
+          <button class="btn btn-primary mt-auto add-to-cart"
+            data-id="${product.id}">
+            Add to Cart
+          </button>
         </div>
       </div>
     `;
@@ -66,7 +67,7 @@ function renderProducts() {
 }
 
 /* ===============================
-   ADD TO CART
+   ADD TO CART (AWS API)
 ================================ */
 async function addToCart(product) {
   const userId = localStorage.getItem("userId");
@@ -78,12 +79,12 @@ async function addToCart(product) {
   }
 
   try {
-    const response = await fetch(`${API_BASE}/api/cart`, {
+    const res = await fetch(`${API_BASE}/api/cart`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         userId,
-        productId: product.id,
+        productId: product.id,   // AWS uses static id (NO MongoDB)
         name: product.name,
         price: product.price,
         image: product.img,
@@ -91,19 +92,17 @@ async function addToCart(product) {
       })
     });
 
-    const data = await response.json();
+    const data = await res.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to add to cart");
-    }
+    if (!res.ok) throw new Error(data.message || "Cart error");
 
-    alert("Item added to cart");
+    alert("Added to cart");
 
     updateCartCount();
 
   } catch (err) {
-    console.error("Error adding item to cart:", err);
-    alert(err.message || "Failed to add to cart");
+    console.error(err);
+    alert("Failed to add to cart");
   }
 }
 
@@ -122,28 +121,25 @@ function attachAddToCartEvents() {
 }
 
 /* ===============================
-   CART COUNT
+   CART COUNT (AWS)
 ================================ */
 async function updateCartCount() {
   const cartCount = document.getElementById("cart-count");
   const userId = localStorage.getItem("userId");
 
-  if (!cartCount || !userId) {
-    if (cartCount) cartCount.innerText = "0";
-    return;
-  }
+  if (!cartCount || !userId) return;
 
   try {
     const res = await fetch(`${API_BASE}/api/cart/${userId}`);
-
-    if (!res.ok) throw new Error("Failed to fetch cart");
-
     const cart = await res.json();
 
-    cartCount.innerText = cart.reduce((sum, item) => sum + item.quantity, 0);
+    cartCount.innerText = cart.reduce(
+      (sum, item) => sum + item.quantity,
+      0
+    );
 
   } catch (err) {
-    console.error("Cart count error:", err);
+    console.error(err);
     cartCount.innerText = "0";
   }
 }
@@ -154,15 +150,13 @@ async function updateCartCount() {
 const slides = document.querySelectorAll(".hero-slide");
 let current = 0;
 
-function changeSlide() {
+setInterval(() => {
   if (!slides.length) return;
 
   slides[current].classList.remove("active");
   current = (current + 1) % slides.length;
   slides[current].classList.add("active");
-}
-
-setInterval(changeSlide, 4000);
+}, 4000);
 
 /* ===============================
    INIT

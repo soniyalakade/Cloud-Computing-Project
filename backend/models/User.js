@@ -1,9 +1,9 @@
-const mongoose = require("mongoose");
+// DynamoDB User Structure (NOT Mongoose)
 
-const userSchema = new mongoose.Schema({
-    name:String,
-    email:String,
-    password:String
-});
+const UserModel = {
+  email: "",   // PRIMARY KEY
+  name: "",
+  password: ""
+};
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = UserModel;

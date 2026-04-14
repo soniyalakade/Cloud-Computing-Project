@@ -12,7 +12,9 @@ function getCurrentUser() {
   };
 }
 
-/* ================= REGISTER ================= */
+/* =======================
+   REGISTER
+======================= */
 const registerForm = document.getElementById("registerForm");
 
 if (registerForm) {
@@ -23,28 +25,35 @@ if (registerForm) {
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
 
-    const res = await fetch("/api/users/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password })
-    });
+    try {
+      const res = await fetch(`${API_BASE}/api/users/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password })
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (res.ok) {
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("userName", data.user.name);
-      localStorage.setItem("userId", data.user.email);
+      if (res.ok) {
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("userName", data.user.name);
+        localStorage.setItem("userId", data.user.email);
 
-      alert("Registered successfully!");
-      window.location.href = "../index.html";
-    } else {
-      alert(data.message);
+        alert("Registered successfully!");
+        window.location.href = "../index.html";
+      } else {
+        alert(data.message || "Registration failed");
+      }
+    } catch (err) {
+      console.error("Register error:", err);
+      alert("Server not reachable");
     }
   });
 }
 
-/* ================= LOGIN ================= */
+/* =======================
+   LOGIN
+======================= */
 const loginForm = document.getElementById("loginForm");
 
 if (loginForm) {
@@ -54,28 +63,35 @@ if (loginForm) {
     const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value.trim();
 
-    const res = await fetch("/api/users/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
-    });
+    try {
+      const res = await fetch(`${API_BASE}/api/users/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (res.ok && data.user) {
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("userName", data.user.name);
-      localStorage.setItem("userId", data.user.email);
+      if (res.ok && data.user) {
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("userName", data.user.name);
+        localStorage.setItem("userId", data.user.email);
 
-      alert("Login successful!");
-      window.location.href = "../index.html";
-    } else {
-      alert(data.message);
+        alert("Login successful!");
+        window.location.href = "../index.html";
+      } else {
+        alert(data.message || "Login failed");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      alert("Server not reachable");
     }
   });
 }
 
-/* ================= LOGOUT ================= */
+/* =======================
+   LOGOUT
+======================= */
 document.addEventListener("click", (e) => {
   if (e.target && e.target.id === "logoutBtn") {
     localStorage.clear();
@@ -84,7 +100,9 @@ document.addEventListener("click", (e) => {
   }
 });
 
-/* ================= PAGE PROTECTION ================= */
+/* =======================
+   PAGE PROTECTION
+======================= */
 document.addEventListener("DOMContentLoaded", () => {
   const protectedPage = document.body.dataset.protected === "true";
 

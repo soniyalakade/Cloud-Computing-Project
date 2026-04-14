@@ -1,12 +1,12 @@
-const mongoose = require("mongoose");
+// DynamoDB Product Structure
 
-const ProductSchema = new mongoose.Schema({
-  name: String,
-  cost: Number,
-  category: String,
-  imageUrl: String,
-  imageKey: String
-});
+const ProductModel = {
+  id: "",          // PRIMARY KEY
+  name: "",
+  cost: 0,
+  category: "",
+  imageUrl: "",
+  imageKey: ""
+};
 
-module.exports = mongoose.model("Product", ProductSchema);
-
+module.exports = ProductModel;

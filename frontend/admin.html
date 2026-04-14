@@ -10,11 +10,9 @@
 
 <h2>Fashion Store Admin Panel</h2>
 
-<!-- ================= ADD PRODUCT FORM ================= -->
 <form id="productForm" enctype="multipart/form-data">
 
   <input type="text" id="name" placeholder="Product Name" required />
-
   <input type="number" id="cost" placeholder="Cost" required />
 
   <select id="category" required>
@@ -35,21 +33,19 @@
 <h2>All Products</h2>
 <div id="productList"></div>
 
-<script>
-  const API_BASE = "http://fashion-store-alb-769926527.eu-west-3.elb.amazonaws.com";
+<script src="./config.js"></script>
 
+<script>
 
 // ================= LOAD PRODUCTS =================
 async function loadProducts() {
-  const res = await fetch(`${API_BASE}/admin/products`);
+  const res = await fetch(`${API_BASE}/api/admin/products`);
   const products = await res.json();
 
   const container = document.getElementById("productList");
   container.innerHTML = "";
 
   products.forEach(product => {
-
-    console.log("PRODUCT:", product); // DEBUG
 
     container.innerHTML += `
       <div class="card">
@@ -71,14 +67,12 @@ async function loadProducts() {
 // ================= DELETE PRODUCT =================
 async function deleteProduct(id) {
 
-  console.log("Deleting ID:", id);
-
   if (!id) {
     alert("Invalid product id");
     return;
   }
 
-  const res = await fetch(`${API_BASE}/product/${id}`, {
+  const res = await fetch(`${API_BASE}/api/product/${id}`, {
     method: "DELETE"
   });
 
@@ -99,7 +93,7 @@ document.getElementById("productForm").addEventListener("submit", async (e) => {
   formData.append("category", document.getElementById("category").value);
   formData.append("image", document.getElementById("image").files[0]);
 
-  const res = await fetch(`${API_BASE}/add-product`, {
+  const res = await fetch(`${API_BASE}/api/add-product`, {
     method: "POST",
     body: formData
   });

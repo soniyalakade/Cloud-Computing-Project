@@ -14,15 +14,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const totalPriceEl = document.getElementById("total-price");
   const checkoutBtn = document.getElementById("checkout-btn");
 
+
+  // ================= LOAD CART =================
   async function loadCart() {
     try {
       const res = await fetch(`${API_BASE}/api/cart/${userId}`);
+
+      if (!res.ok) throw new Error("Failed to load cart");
+
       const cart = await res.json();
 
       cartItems.innerHTML = "";
+
       let total = 0;
 
       cart.forEach(item => {
+
         total += item.price * item.quantity;
 
         const div = document.createElement("div");
@@ -35,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <h5>${item.name}</h5>
               <p>₹${item.price}</p>
               <p>Qty: ${item.quantity}</p>
+
               <button class="btn btn-danger remove-btn" data-id="${item.productId}">
                 Remove
               </button>
@@ -51,42 +59,73 @@ document.addEventListener("DOMContentLoaded", () => {
 
     } catch (err) {
       console.error("Cart load error:", err);
+      cartItems.innerHTML = "<p class='text-danger'>Failed to load cart</p>";
     }
   }
 
+
+  // ================= REMOVE ITEM =================
   function attachRemove() {
     document.querySelectorAll(".remove-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
 
         const productId = btn.dataset.id;
 
-        await fetch(`${API_BASE}/api/cart/${userId}/${productId}`, {
-          method: "DELETE"
-        });
+        try {
+          const res = await fetch(
+            `${API_BASE}/api/cart/${userId}/${productId}`,
+            { method: "DELETE" }
+          );
 
-        loadCart();
-        window.dispatchEvent(new Event("cartUpdated"));
+          if (!res.ok) throw new Error("Delete failed");
+
+          loadCart();
+          window.dispatchEvent(new Event("cartUpdated"));
+
+        } catch (err) {
+          console.error("Remove error:", err);
+          alert("Failed to remove item");
+        }
       });
     });
   }
 
+
+  // ================= CHECKOUT =================
   checkoutBtn.addEventListener("click", async () => {
-    const res = await fetch(`${API_BASE}/api/cart/${userId}`);
-    const cart = await res.json();
 
-    if (!cart.length) return alert("Cart empty");
+    try {
+      const res = await fetch(`${API_BASE}/api/cart/${userId}`);
 
-    const clearRes = await fetch(`${API_BASE}/api/cart/${userId}/clear`, {
-      method: "DELETE"
-    });
+      if (!res.ok) throw new Error("Cart fetch failed");
 
-    const data = await clearRes.json();
+      const cart = await res.json();
 
-    alert(`Order placed! ${data.deleted} items removed`);
+      if (!Array.isArray(cart) || cart.length === 0) {
+        alert("Cart empty");
+        return;
+      }
 
-    loadCart();
-    window.dispatchEvent(new Event("cartUpdated"));
+      const clearRes = await fetch(
+        `${API_BASE}/api/cart/${userId}/clear`,
+        { method: "DELETE" }
+      );
+
+      if (!clearRes.ok) throw new Error("Checkout failed");
+
+      const data = await clearRes.json();
+
+      alert(`Order placed! ${data.deleted} items removed`);
+
+      loadCart();
+      window.dispatchEvent(new Event("cartUpdated"));
+
+    } catch (err) {
+      console.error(err);
+      alert("Checkout failed");
+    }
   });
+
 
   loadCart();
 });
