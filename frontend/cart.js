@@ -127,6 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
           await loadCart();
           window.dispatchEvent(new Event("cartUpdated"));
+          
 
         } catch (err) {
           console.error("Remove error:", err);
@@ -164,6 +165,7 @@ checkoutBtn.addEventListener("click", async () => {
     await loadCart();
 
     window.dispatchEvent(new Event("cartUpdated"));
+    setTimeout(() => window.dispatchEvent(new Event("cartUpdated")), 300);
 
   } catch (err) {
     console.error(err);

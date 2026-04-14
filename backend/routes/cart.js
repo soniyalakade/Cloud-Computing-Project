@@ -20,7 +20,7 @@ router.get("/:userId", async (req, res) => {
         TableName: "cart",
         KeyConditionExpression: "userId = :uid",
         ExpressionAttributeValues: {
-          ":uid": req.params.userId
+          ":uid": String(req.params.userId)
         }
       })
     );
@@ -33,7 +33,7 @@ router.get("/:userId", async (req, res) => {
 });
 
 
-/* ================= ADD TO CART (OPTIMIZED) ================= */
+/* ================= ADD TO CART ================= */
 router.post("/", async (req, res) => {
   try {
     const { userId, productId, name, price, image } = req.body;
@@ -42,13 +42,15 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "Invalid request" });
     }
 
-    // 🔥 DIRECT CHECK (FAST)
+    const uid = String(userId);
+    const pid = String(productId);
+
     const existing = await dynamo.send(
       new GetCommand({
         TableName: "cart",
         Key: {
-          userId,
-          productId
+          userId: uid,
+          productId: pid
         }
       })
     );
@@ -57,7 +59,7 @@ router.post("/", async (req, res) => {
       await dynamo.send(
         new UpdateCommand({
           TableName: "cart",
-          Key: { userId, productId },
+          Key: { userId: uid, productId: pid },
           UpdateExpression: "SET quantity = quantity + :inc",
           ExpressionAttributeValues: {
             ":inc": 1
@@ -68,13 +70,12 @@ router.post("/", async (req, res) => {
       return res.json({ message: "Quantity updated" });
     }
 
-    // NEW ITEM
     await dynamo.send(
       new PutCommand({
         TableName: "cart",
         Item: {
-          userId,
-          productId,
+          userId: uid,
+          productId: pid,
           name,
           price,
           image,
@@ -91,7 +92,7 @@ router.post("/", async (req, res) => {
 });
 
 
-/* ================= REMOVE ITEM ================= */
+/* ================= CLEAR CART ================= */
 router.delete("/:userId/clear", async (req, res) => {
   try {
     const data = await dynamo.send(
@@ -99,21 +100,13 @@ router.delete("/:userId/clear", async (req, res) => {
         TableName: "cart",
         KeyConditionExpression: "userId = :uid",
         ExpressionAttributeValues: {
-          ":uid": req.params.userId
+          ":uid": String(req.params.userId)
         }
       })
     );
 
     const items = data.Items || [];
 
-    if (items.length === 0) {
-      return res.json({
-        message: "Cart already empty",
-        deleted: 0
-      });
-    }
-
-    // 🔥 SAFE PARALLEL DELETE
     await Promise.all(
       items.map(item =>
         dynamo.send(
@@ -128,14 +121,34 @@ router.delete("/:userId/clear", async (req, res) => {
       )
     );
 
-    return res.json({
+    res.json({
       message: "Cart cleared",
       deleted: items.length
     });
 
   } catch (err) {
-    console.error("CLEAR ERROR:", err);
-    return res.status(500).json({ message: err.message });
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+/* ================= DELETE SINGLE ITEM ================= */
+router.delete("/:userId/:productId", async (req, res) => {
+  try {
+    await dynamo.send(
+      new DeleteCommand({
+        TableName: "cart",
+        Key: {
+          userId: String(req.params.userId),
+          productId: String(req.params.productId)
+        }
+      })
+    );
+
+    res.json({ message: "Item removed" });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 

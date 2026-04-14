@@ -141,12 +141,16 @@ async function addToCart(product) {
     alert("Added to cart!");
 
     // update navbar cart count
+
     window.dispatchEvent(new Event("cartUpdated"));
+    setTimeout(() => window.dispatchEvent(new Event("cartUpdated")), 300);
 
   } catch (err) {
     console.error("Add to cart error:", err);
     alert("Error adding to cart");
   }
+
+  
 }
 
 // ================= INIT =================

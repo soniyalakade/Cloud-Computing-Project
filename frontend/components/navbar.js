@@ -1,5 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+  window.addEventListener("load", () => {
+    setTimeout(updateCartCount, 300);
+  });
+
   const API_BASE = window.API_BASE;
 
   const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
@@ -104,10 +108,23 @@ async function updateCartCount() {
   }
 
   try {
-    const res = await fetch(`${API_BASE}/api/cart/${userId}`);
+    const res = await fetch(`${API_BASE}/api/cart/${encodeURIComponent(userId)}`);
+
+    if (!res.ok) {
+      el.innerText = "0";
+      return;
+    }
+
     const data = await res.json();
 
-    el.innerText = Array.isArray(data) ? data.length : 0;
+    console.log("CART COUNT RAW:", data);
+
+    // 🔥 FIX: handle quantity properly
+    const count = Array.isArray(data)
+      ? data.reduce((sum, item) => sum + (item.quantity || 1), 0)
+      : 0;
+
+    el.innerText = count;
 
   } catch (err) {
     console.error("Cart count error:", err);
