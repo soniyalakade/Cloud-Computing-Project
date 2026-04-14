@@ -80,24 +80,30 @@ async function addToCart(product) {
     return;
   }
 
+  const payload = {
+    userId,
+    productId: product._id,
+    name: product.name,
+    price: Number(product.cost),
+    image: product.imageUrl,
+    quantity: 1   // 🔥 REQUIRED for DynamoDB model
+  };
+
   try {
     const res = await fetch(`${API_BASE}/api/cart`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId,
-        productId: product._id,
-        name: product.name,
-        price: product.cost,
-        image: product.imageUrl
-      })
+      body: JSON.stringify(payload)
     });
 
-    if (!res.ok) throw new Error("Failed to add to cart");
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      console.error("Backend response:", data);
+      throw new Error("Failed to add to cart");
+    }
 
     alert("Added to cart successfully!");
-
-    // update navbar cart count if exists
     window.dispatchEvent(new Event("cartUpdated"));
 
   } catch (err) {
