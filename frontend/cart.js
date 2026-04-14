@@ -8,11 +8,18 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+  // ================= SAFE API BASE =================
+  const API_BASE = window.API_BASE;
+
+  if (!API_BASE) {
+    console.error("API_BASE not found. Check config.js");
+    return;
+  }
+
   const cartItems = document.getElementById("cart-items");
   const totalPriceEl = document.getElementById("total-price");
   const checkoutBtn = document.getElementById("checkout-btn");
   const breakdownEl = document.getElementById("price-breakdown");
-
 
   // ================= LOAD CART =================
   async function loadCart() {
@@ -38,7 +45,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       cart.forEach(item => {
 
-        const subtotal = item.price * item.quantity;
+        const price = Number(item.price || 0);
+        const qty = Number(item.quantity || 1);
+        const subtotal = price * qty;
+
         total += subtotal;
 
         // ================= CART CARD =================
@@ -48,16 +58,16 @@ document.addEventListener("DOMContentLoaded", () => {
         col.innerHTML = `
           <div class="card h-100 shadow-sm">
 
-            <img src="${item.image}" 
+            <img src="${item.image || item.imageUrl}" 
                  class="card-img-top p-3"
                  style="height:200px; object-fit:contain;">
 
             <div class="card-body text-center">
 
-              <h5 class="fw-semibold">${item.name}</h5>
+              <h5 class="fw-semibold">${item.name || "Product"}</h5>
 
               <p class="text-muted">
-                ₹${item.price} × ${item.quantity}
+                ₹${price} × ${qty}
               </p>
 
               <p class="fw-bold">
@@ -80,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
         li.className = "list-group-item d-flex justify-content-between";
 
         li.innerHTML = `
-          <span>${item.name} × ${item.quantity}</span>
+          <span>${item.name} × ${qty}</span>
           <span>₹${subtotal}</span>
         `;
 
@@ -93,12 +103,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     } catch (err) {
       console.error("Cart load error:", err);
+
       cartItems.innerHTML = `
         <p class="text-danger text-center">Failed to load cart</p>
       `;
     }
   }
-
 
   // ================= REMOVE ITEM =================
   function attachRemove() {
@@ -115,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
           if (!res.ok) throw new Error("Delete failed");
 
-          loadCart();
+          await loadCart();
           window.dispatchEvent(new Event("cartUpdated"));
 
         } catch (err) {
@@ -126,37 +136,37 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-
   // ================= CHECKOUT =================
-  checkoutBtn.addEventListener("click", async () => {
+  if (checkoutBtn) {
+    checkoutBtn.addEventListener("click", async () => {
 
-    try {
-      const res = await fetch(`${API_BASE}/api/cart/${userId}`);
+      try {
+        const res = await fetch(`${API_BASE}/api/cart/${userId}`);
 
-      if (!res.ok) throw new Error("Cart fetch failed");
+        if (!res.ok) throw new Error("Cart fetch failed");
 
-      const cart = await res.json();
+        const cart = await res.json();
 
-      if (!Array.isArray(cart) || cart.length === 0) {
-        alert("Cart empty");
-        return;
+        if (!Array.isArray(cart) || cart.length === 0) {
+          alert("Cart empty");
+          return;
+        }
+
+        await fetch(`${API_BASE}/api/cart/${userId}/clear`, {
+          method: "DELETE"
+        });
+
+        alert(`Order placed! ${cart.length} items removed`);
+
+        await loadCart();
+        window.dispatchEvent(new Event("cartUpdated"));
+
+      } catch (err) {
+        console.error(err);
+        alert("Checkout failed");
       }
-
-      await fetch(`${API_BASE}/api/cart/${userId}/clear`, {
-        method: "DELETE"
-      });
-
-      alert(`Order placed! ${cart.length} items removed`);
-
-      await loadCart();
-      window.dispatchEvent(new Event("cartUpdated"));
-
-    } catch (err) {
-      console.error(err);
-      alert("Checkout failed");
-    }
-  });
-
+    });
+  }
 
   loadCart();
 });

@@ -6,6 +6,7 @@ const container = document.getElementById("category-products");
 
 title.innerText = `${categoryType.toUpperCase()} Collection`;
 
+// ================= LOAD PRODUCTS =================
 async function loadProducts() {
   try {
     let url = `${API_BASE}/api/admin/products`;
@@ -15,12 +16,14 @@ async function loadProducts() {
     }
 
     const res = await fetch(url);
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const products = await res.json();
+
     container.innerHTML = "";
 
-    if (!products || products.length === 0) {
+    if (!Array.isArray(products) || products.length === 0) {
       container.innerHTML = `
         <div class="text-center text-muted">
           No products found in this category
@@ -29,13 +32,14 @@ async function loadProducts() {
     }
 
     products.forEach(product => {
+
       const col = document.createElement("div");
       col.className = "col-md-4 col-sm-6";
 
       col.innerHTML = `
         <div class="card h-100 shadow-sm border-0 product-card">
 
-          <img src="${product.imageUrl}" 
+          <img src="${product.imageUrl || product.image}" 
                class="card-img-top p-3"
                style="height:250px; object-fit:contain;"
                alt="${product.name}">
@@ -44,7 +48,9 @@ async function loadProducts() {
 
             <h5 class="fw-semibold">${product.name}</h5>
 
-            <p class="text-success fw-bold fs-5">₹${product.cost}</p>
+            <p class="text-success fw-bold fs-5">
+              ₹${product.cost || product.price}
+            </p>
 
             <button class="btn btn-primary mt-auto w-100 add-cart-btn">
               Add to Cart
@@ -63,6 +69,7 @@ async function loadProducts() {
 
   } catch (error) {
     console.error("Load products error:", error);
+
     container.innerHTML = `
       <div class="text-danger text-center">
         Error loading products
@@ -72,6 +79,7 @@ async function loadProducts() {
 
 // ================= ADD TO CART =================
 async function addToCart(product) {
+
   const userId = localStorage.getItem("userId");
 
   if (!userId) {
@@ -80,19 +88,35 @@ async function addToCart(product) {
     return;
   }
 
+  // 🔥 SAFE PRODUCT ID HANDLING (CRITICAL FIX)
+  const productId =
+    product._id ||
+    product.id ||
+    product.productId;
+
+  if (!productId) {
+    console.error("Invalid product received:", product);
+    alert("Product ID missing");
+    return;
+  }
+
   const payload = {
     userId,
-    productId: product._id,
+    productId,
     name: product.name,
-    price: Number(product.cost),
-    image: product.imageUrl,
-    quantity: 1   // 🔥 REQUIRED for DynamoDB model
+    price: Number(product.cost || product.price),
+    image: product.imageUrl || product.image,
+    quantity: 1
   };
+
+  console.log("Cart Payload:", payload);
 
   try {
     const res = await fetch(`${API_BASE}/api/cart`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify(payload)
     });
 
@@ -107,9 +131,10 @@ async function addToCart(product) {
     window.dispatchEvent(new Event("cartUpdated"));
 
   } catch (err) {
-    console.error(err);
+    console.error("Add to cart error:", err);
     alert("Error adding to cart");
   }
 }
 
+// ================= INIT =================
 loadProducts();
