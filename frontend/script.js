@@ -35,131 +35,70 @@ const API_BASE = "http://fashion-store-alb-769926527.eu-west-3.elb.amazonaws.com
 
 const productList = document.getElementById("product-list");
 
-/* ===============================
-   RENDER PRODUCTS
-================================ */
-function renderProducts() {
-  productList.innerHTML = "";
+async function loadProducts() {
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/products`);
+    const products = await res.json();
 
-  products.forEach(product => {
-    const col = document.createElement("div");
-    col.className = "col-md-4 mb-4";
+    productList.innerHTML = "";
 
-    col.innerHTML = `
-      <div class="card h-100 shadow-sm">
-        <img src="${product.img}" class="card-img-top" />
-        <div class="card-body d-flex flex-column">
-          <h5>${product.name}</h5>
-          <p>₹${product.price}</p>
+    if (!Array.isArray(products) || products.length === 0) {
+      productList.innerHTML = "<p>No products available</p>";
+      return;
+    }
 
-          <button class="btn btn-primary mt-auto add-to-cart"
-            data-id="${product.id}">
-            Add to Cart
-          </button>
+    products.forEach(product => {
+      const col = document.createElement("div");
+      col.className = "col-md-4 mb-4";
+
+      col.innerHTML = `
+        <div class="card h-100 shadow-sm">
+          <img src="${product.imageUrl}" class="card-img-top" />
+          <div class="card-body d-flex flex-column">
+            <h5>${product.name}</h5>
+            <p>₹${product.cost}</p>
+
+            <button class="btn btn-primary mt-auto add-to-cart">
+              Add to Cart
+            </button>
+          </div>
         </div>
-      </div>
-    `;
+      `;
 
-    productList.appendChild(col);
-  });
+      productList.appendChild(col);
 
-  attachAddToCartEvents();
+      col.querySelector(".add-to-cart").addEventListener("click", () => {
+        addToCart(product);
+      });
+    });
+
+  } catch (err) {
+    console.error(err);
+    productList.innerHTML = "<p>Failed to load products</p>";
+  }
 }
 
-/* ===============================
-   ADD TO CART (AWS API)
-================================ */
 async function addToCart(product) {
   const userId = localStorage.getItem("userId");
 
   if (!userId) {
     alert("Please login first");
-    window.location.href = "./auth/login.html";
     return;
   }
 
-  try {
-    const res = await fetch(`${API_BASE}/api/cart`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId,
-        productId: product.id,   // AWS uses static id (NO MongoDB)
-        name: product.name,
-        price: product.price,
-        image: product.img,
-        quantity: 1
-      })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.message || "Cart error");
-
-    alert("Added to cart");
-
-    updateCartCount();
-
-  } catch (err) {
-    console.error(err);
-    alert("Failed to add to cart");
-  }
-}
-
-/* ===============================
-   BUTTON EVENTS
-================================ */
-function attachAddToCartEvents() {
-  document.querySelectorAll(".add-to-cart").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const id = Number(btn.dataset.id);
-      const product = products.find(p => p.id === id);
-
-      if (product) addToCart(product);
-    });
+  await fetch(`${API_BASE}/api/cart`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId,
+      productId: product.id,
+      name: product.name,
+      price: product.cost,
+      image: product.imageUrl
+    })
   });
+
+  alert("Added to cart");
 }
 
-/* ===============================
-   CART COUNT (AWS)
-================================ */
-async function updateCartCount() {
-  const cartCount = document.getElementById("cart-count");
-  const userId = localStorage.getItem("userId");
-
-  if (!cartCount || !userId) return;
-
-  try {
-    const res = await fetch(`${API_BASE}/api/cart/${userId}`);
-    const cart = await res.json();
-
-    cartCount.innerText = cart.reduce(
-      (sum, item) => sum + item.quantity,
-      0
-    );
-
-  } catch (err) {
-    console.error(err);
-    cartCount.innerText = "0";
-  }
-}
-
-/* ===============================
-   HERO SLIDER
-================================ */
-const slides = document.querySelectorAll(".hero-slide");
-let current = 0;
-
-setInterval(() => {
-  if (!slides.length) return;
-
-  slides[current].classList.remove("active");
-  current = (current + 1) % slides.length;
-  slides[current].classList.add("active");
-}, 4000);
-
-/* ===============================
-   INIT
-================================ */
-renderProducts();
-updateCartCount();
+loadProducts();
