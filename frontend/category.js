@@ -1,10 +1,10 @@
 const params = new URLSearchParams(window.location.search);
 const categoryType = (params.get("type") || "all").toLowerCase();
 
-document.getElementById("category-title").innerText =
-  categoryType + " Collection";
-
+const title = document.getElementById("category-title");
 const container = document.getElementById("category-products");
+
+title.innerText = `${categoryType.toUpperCase()} Collection`;
 
 async function loadProducts() {
   try {
@@ -15,33 +15,41 @@ async function loadProducts() {
     }
 
     const res = await fetch(url);
-
-    if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const products = await res.json();
-
     container.innerHTML = "";
 
-    if (!Array.isArray(products) || products.length === 0) {
-      container.innerHTML = "<p>No products found</p>";
+    if (!products || products.length === 0) {
+      container.innerHTML = `
+        <div class="text-center text-muted">
+          No products found in this category
+        </div>`;
       return;
     }
 
     products.forEach(product => {
-
       const col = document.createElement("div");
-      col.className = "col-md-4 mb-4";
+      col.className = "col-md-4 col-sm-6";
 
       col.innerHTML = `
-        <div class="card h-100 shadow">
-          <img src="${product.imageUrl}" class="card-img-top">
-          <div class="card-body d-flex flex-column">
-            <h5>${product.name}</h5>
-            <p>₹${product.cost}</p>
+        <div class="card h-100 shadow-sm border-0 product-card">
+
+          <img src="${product.imageUrl}" 
+               class="card-img-top p-3"
+               style="height:250px; object-fit:contain;"
+               alt="${product.name}">
+
+          <div class="card-body d-flex flex-column text-center">
+
+            <h5 class="fw-semibold">${product.name}</h5>
+
+            <p class="text-success fw-bold fs-5">₹${product.cost}</p>
 
             <button class="btn btn-primary mt-auto w-100 add-cart-btn">
               Add to Cart
             </button>
+
           </div>
         </div>
       `;
@@ -51,23 +59,24 @@ async function loadProducts() {
       col.querySelector(".add-cart-btn").addEventListener("click", () => {
         addToCart(product);
       });
-
     });
 
   } catch (error) {
     console.error("Load products error:", error);
-    container.innerHTML = "<p>Error loading products</p>";
+    container.innerHTML = `
+      <div class="text-danger text-center">
+        Error loading products
+      </div>`;
   }
 }
-
 
 // ================= ADD TO CART =================
 async function addToCart(product) {
   const userId = localStorage.getItem("userId");
 
   if (!userId) {
-    alert("Login first");
-    window.location.href = "./auth/login.html";
+    alert("Please login first");
+    window.location.href = "../auth/login.html";
     return;
   }
 
@@ -77,7 +86,7 @@ async function addToCart(product) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         userId,
-        productId: product.id,   // ✅ FIXED
+        productId: product._id,
         name: product.name,
         price: product.cost,
         image: product.imageUrl
@@ -86,9 +95,10 @@ async function addToCart(product) {
 
     if (!res.ok) throw new Error("Failed to add to cart");
 
-    alert("Added to cart");
+    alert("Added to cart successfully!");
 
-    window.dispatchEvent(new Event("cartUpdated")); // ✅ FIXED
+    // update navbar cart count if exists
+    window.dispatchEvent(new Event("cartUpdated"));
 
   } catch (err) {
     console.error(err);

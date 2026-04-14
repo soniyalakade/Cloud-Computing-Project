@@ -211,6 +211,14 @@ body {
   padding: 10px;
 }
 
+.btn btn-secondary mt-auto {
+  background: #ff4d6d;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+}
+
 /* ================= FOOTER ================= */
 footer {
   background: var(--primary);

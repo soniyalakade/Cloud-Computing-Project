@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const cartItems = document.getElementById("cart-items");
   const totalPriceEl = document.getElementById("total-price");
   const checkoutBtn = document.getElementById("checkout-btn");
+  const breakdownEl = document.getElementById("price-breakdown");
 
 
   // ================= LOAD CART =================
@@ -25,32 +26,67 @@ document.addEventListener("DOMContentLoaded", () => {
       const cart = await res.json();
 
       cartItems.innerHTML = "";
+      breakdownEl.innerHTML = "";
 
       let total = 0;
 
+      if (!Array.isArray(cart) || cart.length === 0) {
+        cartItems.innerHTML = `
+          <p class="text-center text-muted">Your cart is empty</p>
+        `;
+        totalPriceEl.innerText = "0";
+        return;
+      }
+
       cart.forEach(item => {
 
-        total += item.price * item.quantity;
+        const subtotal = item.price * item.quantity;
+        total += subtotal;
 
-        const div = document.createElement("div");
-        div.className = "col-md-4 mb-4";
+        // ================= CART CARD =================
+        const col = document.createElement("div");
+        col.className = "col-md-6 mb-4";
 
-        div.innerHTML = `
-          <div class="card shadow">
-            <img src="${item.image}" class="card-img-top">
+        col.innerHTML = `
+          <div class="card h-100 shadow-sm">
+
+            <img src="${item.image}" 
+                 class="card-img-top p-3"
+                 style="height:200px; object-fit:contain;">
+
             <div class="card-body text-center">
-              <h5>${item.name}</h5>
-              <p>₹${item.price}</p>
-              <p>Qty: ${item.quantity}</p>
 
-              <button class="btn btn-danger remove-btn" data-id="${item.productId}">
+              <h5 class="fw-semibold">${item.name}</h5>
+
+              <p class="text-muted">
+                ₹${item.price} × ${item.quantity}
+              </p>
+
+              <p class="fw-bold">
+                Subtotal: ₹${subtotal}
+              </p>
+
+              <button class="btn btn-danger btn-sm remove-btn"
+                      data-id="${item.productId}">
                 Remove
               </button>
+
             </div>
           </div>
         `;
 
-        cartItems.appendChild(div);
+        cartItems.appendChild(col);
+
+        // ================= PRICE BREAKDOWN =================
+        const li = document.createElement("li");
+        li.className = "list-group-item d-flex justify-content-between";
+
+        li.innerHTML = `
+          <span>${item.name} × ${item.quantity}</span>
+          <span>₹${subtotal}</span>
+        `;
+
+        breakdownEl.appendChild(li);
       });
 
       totalPriceEl.innerText = total;
@@ -59,7 +95,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     } catch (err) {
       console.error("Cart load error:", err);
-      cartItems.innerHTML = "<p class='text-danger'>Failed to load cart</p>";
+      cartItems.innerHTML = `
+        <p class="text-danger text-center">Failed to load cart</p>
+      `;
     }
   }
 
@@ -106,18 +144,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const clearRes = await fetch(
-        `${API_BASE}/api/cart/${userId}/clear`,
-        { method: "DELETE" }
-      );
+      await fetch(`${API_BASE}/api/cart/${userId}/clear`, {
+        method: "DELETE"
+      });
 
-      if (!clearRes.ok) throw new Error("Checkout failed");
+      alert(`Order placed! ${cart.length} items removed`);
 
-      const data = await clearRes.json();
-
-      alert(`Order placed! ${data.deleted} items removed`);
-
-      loadCart();
+      await loadCart();
       window.dispatchEvent(new Event("cartUpdated"));
 
     } catch (err) {
