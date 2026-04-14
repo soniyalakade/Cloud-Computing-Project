@@ -92,27 +92,6 @@ router.post("/", async (req, res) => {
 
 
 /* ================= REMOVE ITEM ================= */
-router.delete("/:userId/:productId", async (req, res) => {
-  try {
-    await dynamo.send(
-      new DeleteCommand({
-        TableName: "cart",
-        Key: {
-          userId: req.params.userId,
-          productId: req.params.productId
-        }
-      })
-    );
-
-    res.json({ message: "Item removed" });
-
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-
-/* ================= CLEAR CART ================= */
 router.delete("/:userId/clear", async (req, res) => {
   try {
     const data = await dynamo.send(
@@ -127,15 +106,22 @@ router.delete("/:userId/clear", async (req, res) => {
 
     const items = data.Items || [];
 
-    // ✅ FIX: parallel delete (IMPORTANT)
+    if (items.length === 0) {
+      return res.json({
+        message: "Cart already empty",
+        deleted: 0
+      });
+    }
+
+    // 🔥 SAFE PARALLEL DELETE
     await Promise.all(
       items.map(item =>
         dynamo.send(
           new DeleteCommand({
             TableName: "cart",
             Key: {
-              userId: item.userId,
-              productId: item.productId
+              userId: String(item.userId),
+              productId: String(item.productId)
             }
           })
         )
@@ -148,6 +134,7 @@ router.delete("/:userId/clear", async (req, res) => {
     });
 
   } catch (err) {
+    console.error("CLEAR ERROR:", err);
     return res.status(500).json({ message: err.message });
   }
 });

@@ -94,6 +94,7 @@ async function loadProducts() {
 }
 
 // ================= ADD TO CART =================
+// ================= ADD TO CART =================
 async function addToCart(product) {
 
   const userId = localStorage.getItem("userId");
@@ -107,21 +108,21 @@ async function addToCart(product) {
   const productId = product._id;
 
   if (!productId) {
-    console.error("Product missing ID:", product);
     alert("Invalid product");
     return;
   }
 
+  // 🔥 FIX: FORCE STRING TYPES (IMPORTANT FOR DYNAMODB)
   const payload = {
-    userId,
-    productId,
+    userId: String(userId),
+    productId: String(productId),
     name: product.name,
     price: Number(product.cost || product.price),
     image: product.imageUrl || product.image,
     quantity: 1
   };
 
-  console.log("Cart Payload:", payload);
+  console.log("CART PAYLOAD:", payload);
 
   try {
     const res = await fetch(`${API_BASE}/api/cart`, {
@@ -137,9 +138,9 @@ async function addToCart(product) {
       throw new Error("Add to cart failed");
     }
 
-    alert("Added to cart successfully!");
+    alert("Added to cart!");
 
-    // 🔥 IMPORTANT: update navbar cart
+    // update navbar cart count
     window.dispatchEvent(new Event("cartUpdated"));
 
   } catch (err) {
