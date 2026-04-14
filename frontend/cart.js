@@ -138,9 +138,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ================= CHECKOUT =================
 checkoutBtn.addEventListener("click", async () => {
+
+  const API_BASE = window.API_BASE;
+  const userId = localStorage.getItem("userId");
+
   try {
     const res = await fetch(`${API_BASE}/api/cart/${userId}`);
-
     const cart = await res.json();
 
     if (!Array.isArray(cart) || cart.length === 0) {
@@ -148,24 +151,21 @@ checkoutBtn.addEventListener("click", async () => {
       return;
     }
 
-    const clearRes = await fetch(
-      `${API_BASE}/api/cart/${userId}/clear`,
-      { method: "DELETE" }
-    );
+    const clearRes = await fetch(`${API_BASE}/api/cart/${userId}/clear`, {
+      method: "DELETE"
+    });
 
-    const data = await clearRes.json();
+    const result = await clearRes.json();
 
-    console.log("Clear response:", data);
+    console.log("CLEAR RESULT:", result);
 
-    if (!clearRes.ok) throw new Error("Checkout failed");
+    if (!clearRes.ok) throw new Error("Clear failed");
 
-    alert(`Order placed! ${cart.length} items removed`);
+    alert(`Order placed! ${result.deleted} items removed`);
 
     await loadCart();
 
-    // 🔥 IMPORTANT FIX
     window.dispatchEvent(new Event("cartUpdated"));
-    setTimeout(() => window.dispatchEvent(new Event("cartUpdated")), 300);
 
   } catch (err) {
     console.error(err);

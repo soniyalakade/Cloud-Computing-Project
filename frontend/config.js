@@ -1,1 +1,2 @@
+// config.js
 window.API_BASE = "http://fashion-store-alb-769926527.eu-west-3.elb.amazonaws.com";

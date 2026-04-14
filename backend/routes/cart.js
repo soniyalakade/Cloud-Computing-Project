@@ -127,20 +127,23 @@ router.delete("/:userId/clear", async (req, res) => {
 
     const items = data.Items || [];
 
-    for (const item of items) {
-      await dynamo.send(
-        new DeleteCommand({
-          TableName: "cart",
-          Key: {
-            userId: item.userId,
-            productId: item.productId
-          }
-        })
-      );
-    }
+    // ✅ FIX: parallel delete (IMPORTANT)
+    await Promise.all(
+      items.map(item =>
+        dynamo.send(
+          new DeleteCommand({
+            TableName: "cart",
+            Key: {
+              userId: item.userId,
+              productId: item.productId
+            }
+          })
+        )
+      )
+    );
 
     return res.json({
-      message: "Cart cleared successfully",
+      message: "Cart cleared",
       deleted: items.length
     });
 
