@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const userName = localStorage.getItem("userName") || "User";
 
   const container = document.getElementById("navbar-container");
-
   if (!container) return;
 
   container.innerHTML = `
@@ -45,15 +44,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             <li class="nav-item ms-lg-3">
               <a class="nav-link" href="cart.html">
-                Cart <span id="cart-count" class="badge bg-warning text-dark">0</span>
+                Cart
+                <span id="cart-count" class="badge bg-warning text-dark">0</span>
               </a>
             </li>
 
             ${
               isLoggedIn
                 ? `
-                <li class="nav-item dropdown ms-lg-3">
-                  <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                <li class="nav-item ms-lg-3 dropdown">
+                  <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
                     👤 ${userName}
                   </a>
                   <ul class="dropdown-menu dropdown-menu-end">
@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
     </nav>
   `;
 
-  // ================= LOGOUT =================
+  // logout
   document.addEventListener("click", (e) => {
     if (e.target?.id === "logoutBtn") {
       localStorage.clear();
@@ -89,13 +89,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ================= CART COUNT =================
   updateCartCount();
   window.addEventListener("cartUpdated", updateCartCount);
 });
 
 
-// ================= SAFE CART COUNT =================
+// ================= CART COUNT =================
 async function updateCartCount() {
 
   const el = document.getElementById("cart-count");
@@ -111,8 +110,6 @@ async function updateCartCount() {
 
   try {
     const res = await fetch(`${API_BASE}/api/cart/${userId}`);
-
-    if (!res.ok) throw new Error("failed");
 
     const data = await res.json();
 
