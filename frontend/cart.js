@@ -137,36 +137,41 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ================= CHECKOUT =================
-  if (checkoutBtn) {
-    checkoutBtn.addEventListener("click", async () => {
+checkoutBtn.addEventListener("click", async () => {
+  try {
+    const res = await fetch(`${API_BASE}/api/cart/${userId}`);
 
-      try {
-        const res = await fetch(`${API_BASE}/api/cart/${userId}`);
+    const cart = await res.json();
 
-        if (!res.ok) throw new Error("Cart fetch failed");
+    if (!Array.isArray(cart) || cart.length === 0) {
+      alert("Cart empty");
+      return;
+    }
 
-        const cart = await res.json();
+    const clearRes = await fetch(
+      `${API_BASE}/api/cart/${userId}/clear`,
+      { method: "DELETE" }
+    );
 
-        if (!Array.isArray(cart) || cart.length === 0) {
-          alert("Cart empty");
-          return;
-        }
+    const data = await clearRes.json();
 
-        await fetch(`${API_BASE}/api/cart/${userId}/clear`, {
-          method: "DELETE"
-        });
+    console.log("Clear response:", data);
 
-        alert(`Order placed! ${cart.length} items removed`);
+    if (!clearRes.ok) throw new Error("Checkout failed");
 
-        await loadCart();
-        window.dispatchEvent(new Event("cartUpdated"));
+    alert(`Order placed! ${cart.length} items removed`);
 
-      } catch (err) {
-        console.error(err);
-        alert("Checkout failed");
-      }
-    });
+    await loadCart();
+
+    // 🔥 IMPORTANT FIX
+    window.dispatchEvent(new Event("cartUpdated"));
+    setTimeout(() => window.dispatchEvent(new Event("cartUpdated")), 300);
+
+  } catch (err) {
+    console.error(err);
+    alert("Checkout failed");
   }
+});
 
   loadCart();
 });

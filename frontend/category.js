@@ -1,10 +1,18 @@
+const API_BASE = window.API_BASE;
+
+if (!API_BASE) {
+  console.error("API_BASE not found. Please check config.js");
+}
+
 const params = new URLSearchParams(window.location.search);
 const categoryType = (params.get("type") || "all").toLowerCase();
 
 const title = document.getElementById("category-title");
 const container = document.getElementById("category-products");
 
-title.innerText = `${categoryType.toUpperCase()} Collection`;
+if (title) {
+  title.innerText = `${categoryType.toUpperCase()} Collection`;
+}
 
 // ================= LOAD PRODUCTS =================
 async function loadProducts() {
@@ -16,7 +24,6 @@ async function loadProducts() {
     }
 
     const res = await fetch(url);
-
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const products = await res.json();
@@ -33,13 +40,17 @@ async function loadProducts() {
 
     products.forEach(product => {
 
+      const image = product.imageUrl || product.image || "";
+      const price = Number(product.cost || product.price || 0);
+      const productId = product._id || product.id || product.productId;
+
       const col = document.createElement("div");
       col.className = "col-md-4 col-sm-6";
 
       col.innerHTML = `
         <div class="card h-100 shadow-sm border-0 product-card">
 
-          <img src="${product.imageUrl || product.image}" 
+          <img src="${image}" 
                class="card-img-top p-3"
                style="height:250px; object-fit:contain;"
                alt="${product.name}">
@@ -49,7 +60,7 @@ async function loadProducts() {
             <h5 class="fw-semibold">${product.name}</h5>
 
             <p class="text-success fw-bold fs-5">
-              ₹${product.cost || product.price}
+              ₹${price}
             </p>
 
             <button class="btn btn-primary mt-auto w-100 add-cart-btn">
@@ -63,7 +74,12 @@ async function loadProducts() {
       container.appendChild(col);
 
       col.querySelector(".add-cart-btn").addEventListener("click", () => {
-        addToCart(product);
+        addToCart({
+          ...product,
+          _id: productId,
+          cost: price,
+          imageUrl: image
+        });
       });
     });
 
@@ -79,6 +95,7 @@ async function loadProducts() {
 
 // ================= ADD TO CART =================
 async function addToCart(product) {
+
   const userId = localStorage.getItem("userId");
 
   if (!userId) {
@@ -87,11 +104,11 @@ async function addToCart(product) {
     return;
   }
 
-  const productId = product._id || product.id || product.productId;
+  const productId = product._id;
 
   if (!productId) {
     console.error("Product missing ID:", product);
-    alert("Product ID missing");
+    alert("Invalid product");
     return;
   }
 
@@ -99,12 +116,12 @@ async function addToCart(product) {
     userId,
     productId,
     name: product.name,
-    price: Number(product.cost),
-    image: product.imageUrl,
+    price: Number(product.cost || product.price),
+    image: product.imageUrl || product.image,
     quantity: 1
   };
 
-  console.log("Sending cart payload:", payload);
+  console.log("Cart Payload:", payload);
 
   try {
     const res = await fetch(`${API_BASE}/api/cart`, {
@@ -120,11 +137,13 @@ async function addToCart(product) {
       throw new Error("Add to cart failed");
     }
 
-    alert("Added to cart!");
+    alert("Added to cart successfully!");
+
+    // 🔥 IMPORTANT: update navbar cart
     window.dispatchEvent(new Event("cartUpdated"));
 
   } catch (err) {
-    console.error(err);
+    console.error("Add to cart error:", err);
     alert("Error adding to cart");
   }
 }
