@@ -31,74 +31,27 @@ const products = [
     img: "https://lh6.googleusercontent.com/proxy/8vUzR8OZURj5Fs4VjSPz8M0fkDnXkdQzWYh98OZCWjJhtqx4jIHdvV2Ekt5taphxf533FNpUxNlu70SRKtchwIgEY7qz1yKDr8M1UoaIqC6gwWucBdqsatH3wwTq4xTRnpygifq1_Q"
   }
 ];
-const API_BASE = "http://fashion-store-alb-769926527.eu-west-3.elb.amazonaws.com";
-
 const productList = document.getElementById("product-list");
 
-async function loadProducts() {
-  try {
-    const res = await fetch(`${API_BASE}/api/admin/products`);
-    const products = await res.json();
+function loadProducts() {
+  productList.innerHTML = "";
 
-    productList.innerHTML = "";
+  products.forEach(product => {
+    const col = document.createElement("div");
+    col.className = "col-md-4 mb-4";
 
-    if (!Array.isArray(products) || products.length === 0) {
-      productList.innerHTML = "<p>No products available</p>";
-      return;
-    }
-
-    products.forEach(product => {
-      const col = document.createElement("div");
-      col.className = "col-md-4 mb-4";
-
-      col.innerHTML = `
-        <div class="card h-100 shadow-sm">
-          <img src="${product.imageUrl}" class="card-img-top" />
-          <div class="card-body d-flex flex-column">
-            <h5>${product.name}</h5>
-            <p>₹${product.cost}</p>
-
-            <button class="btn btn-primary mt-auto add-to-cart">
-              Add to Cart
-            </button>
-          </div>
+    col.innerHTML = `
+      <div class="card h-100 shadow-sm">
+        <img src="${product.img}" class="card-img-top" />
+        <div class="card-body d-flex flex-column">
+          <h5>${product.name}</h5>
+          <p>₹${product.price}</p>
         </div>
-      `;
+      </div>
+    `;
 
-      productList.appendChild(col);
-
-      col.querySelector(".add-to-cart").addEventListener("click", () => {
-        addToCart(product);
-      });
-    });
-
-  } catch (err) {
-    console.error(err);
-    productList.innerHTML = "<p>Failed to load products</p>";
-  }
-}
-
-async function addToCart(product) {
-  const userId = localStorage.getItem("userId");
-
-  if (!userId) {
-    alert("Please login first");
-    return;
-  }
-
-  await fetch(`${API_BASE}/api/cart`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      userId,
-      productId: product.id,
-      name: product.name,
-      price: product.cost,
-      image: product.imageUrl
-    })
+    productList.appendChild(col);
   });
-
-  alert("Added to cart");
 }
 
 loadProducts();
